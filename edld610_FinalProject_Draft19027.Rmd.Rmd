@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-require(tidyverse)
+library(tidyverse) # Cam: My understanding is that `require` should be used inside functions. Since you want a missing package to throw an error instead of just a warning, I think library makes sense here. 
 library(data.table)
 library(colorblindr)
 library(gghighlight)
