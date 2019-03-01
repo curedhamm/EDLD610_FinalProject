@@ -134,7 +134,7 @@ mar_pol <- yrbs %>%
   group_by(key, year, sitecode) %>% # Cam: Good work on the multi-variable grouping!
   mutate(evermar = ifelse(q46 > 1, "mar_y", "mar_n")) %>%
   count(evermar) %>%
-  spread(evermar, n) %>% # Cam: Also, great work on our use of spread!
+  spread(evermar, n) %>% # Cam: Also, great work on your use of spread!
   summarise(evermar_perc = 100*(sum(mar_y)/nrow(yrbs))) %>%
   ungroup() %>% 
       left_join(., laws, by = "sitecode") %>% 
