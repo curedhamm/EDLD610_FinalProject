@@ -20,7 +20,7 @@ yrbs1 <- fread("SADCQ_a-m.csv") # Cam: it looks like the data might be missing f
 yrbs2 <- fread("SADCQ_n-z.csv")
 
 yrbs <- bind_rows(yrbs1, yrbs2)
-laws <- rio::import("marijuana policy dates.xlsx")
+laws <- rio::import("marijuana policy dates.xlsx") # Cam: Nice work on the namespacing! Since you are only using import once, it seems more than appropriate.
 ```
 
 ```{r data prep, include = F}
@@ -39,7 +39,7 @@ l1 <- yrbs %>%
 # Alcohol
 l2 <- yrbs %>% 
   group_by(key) %>% 
-  mutate(everalc = ifelse(q40 > 1, "alc_y", "alc_n")) %>% # Cam: Probably not the biggest deal, but I've read that using dplyr's `if_else` is actually faster and safer than base's `ifelse`. 
+  mutate(everalc = ifelse(q40 > 1, "alc_y", "alc_n")) %>% # Cam: Probably not the biggest deal, but I've read that using dplyr's `if_else` is actually faster and safer than base's `ifelse`. Nevertheless, it looks like it did exactly what you wanted it to do!
   count(everalc) %>%
   spread(everalc, n) %>%
   summarise(everalc_perc = 100*(sum(alc_y)/nrow(yrbs))) %>%
