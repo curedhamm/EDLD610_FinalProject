@@ -16,8 +16,8 @@ library(forcats)
 
 
 ```{r data import, include = F}
-yrbs1 <- fread("SADCQ_a-m.csv") # Cam: it looks like this data is missing from the repo.
-yrbs2 <- fread("SADCQ_n-z.csv") # Cam: it looks like this data is missing from the repo.
+yrbs1 <- fread("SADCQ_a-m.csv") # Cam: it looks like the data might be missing from the repo.
+yrbs2 <- fread("SADCQ_n-z.csv")
 
 yrbs <- bind_rows(yrbs1, yrbs2)
 laws <- rio::import("marijuana policy dates.xlsx")
@@ -56,7 +56,7 @@ l1
 # Pulling it all together
 law_full <- left_join(l1, l2, by = "key") %>%
                 left_join(., l3, by = "key") %>%
-                left_join(., laws, by = "sitecode") %>%  # Cam: Great work on your left_joins!
+                left_join(., laws, by = "sitecode") %>%  # Cam: Great work using the left joins to combine your data!
   group_by(Law, year) %>% 
   summarise(alc_prop = mean(everalc_perc),
             cig_prop = mean(evercig_perc),
@@ -66,7 +66,7 @@ law_full <- left_join(l1, l2, by = "key") %>%
                 mar_sd = sd(evermar_perc)) %>%
   ungroup() %>% 
       rename(Alcohol = alc_prop) %>%
-      rename(Cigarettes = cig_prop) %>% # Cam: Very cool use of rename the factor levels before you gathered them. 
+      rename(Cigarettes = cig_prop) %>% # Cam: Very cool use of rename to rename the factor levels before you gathered them. 
       rename(Marijuana = mar_prop) %>% 
   gather(drug, drug_prop, Alcohol:Marijuana) %>% 
   gather(drug_, drug_sd, alc_sd:mar_sd) %>% 
@@ -77,13 +77,13 @@ law_full
 # Plot 1.
 ```{r viz 1}
 ggplot(law_full, aes(year, drug_prop, color = drug)) +
-  geom_smooth(alpha = 0.3) + # Cam: Although colouring the SEs is nice for distinguishing them, I'm not sure it adds much to this plot. 
+  geom_smooth(alpha = 0.3) + # Cam: Although colouring the SEs is nice for distinguishing them, I'm not sure it adds much to this plot. That being said, I think the alpha 0.3 works very well for this plot!
     scale_color_OkabeIto(name = "Substance",
                        labels = c("Alcohol", "Marijuana", "Cigarettes")) +
   scale_y_continuous("Percentage", labels = scales::percent) + # Cam: I like the percentage on the y-axis - good work!
   scale_x_continuous("Year", limits = c(1995, 2015)) + # Cam: I didn't know you could title axes directly in scale_*_continuous. That's really cool!
   labs(title = "Prevalence of Underage Substance Use Over 20 Years",
-       caption = "Data from the CDC's Youth Risk Behavior Survey") + # Cam: Nice work including a caption!
+       caption = "Data from the CDC's Youth Risk Behavior Survey") + # Cam: I like that you provided a source for your data!
   theme_minimal()
 ```
 
@@ -134,7 +134,7 @@ mar_pol <- yrbs %>%
   group_by(key, year, sitecode) %>% # Cam: Good work on the multi-variable grouping!
   mutate(evermar = ifelse(q46 > 1, "mar_y", "mar_n")) %>%
   count(evermar) %>%
-  spread(evermar, n) %>% # Cam: Also, great work omn our use of pread!
+  spread(evermar, n) %>% # Cam: Also, great work on our use of spread!
   summarise(evermar_perc = 100*(sum(mar_y)/nrow(yrbs))) %>%
   ungroup() %>% 
       left_join(., laws, by = "sitecode") %>% 
@@ -148,8 +148,8 @@ mar_pol
 # Plot 3.
 ```{r viz 3}
 mar_pol %>% 
-  filter(Law == "recreational" | Law == "medical") %>% # Cam: Good work on incorporating the or statement. 
-  ggplot() + # Cam: Nice work passing the filtered data straight to ggplot. 
+  filter(Law == "recreational" | Law == "medical") %>% # Cam: I like the use of the or symbol in this filter.
+  ggplot() + # Cam: I also like, since the data prep was so short in this section, that you passed the data straight through to ggplot. 
     geom_line(aes(year, Marijuana, col = Law)) +
   facet_wrap(~sitecode) +
   scale_y_continuous("Percentage", labels = scales::percent) + # Cam: If you round the proportions before you plot them, it should remove the .0 after the percentage, which seems unneeded to me. 
