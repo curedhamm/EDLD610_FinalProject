@@ -131,10 +131,10 @@ ggplot(law_full2, aes(year, drug_prop, col = drug)) +
 
 ```{r data prep 3, include = F}
 mar_pol <- yrbs %>% 
-  group_by(key, year, sitecode) %>% 
+  group_by(key, year, sitecode) %>% # Cam: Good work on the multi-variable grouping!
   mutate(evermar = ifelse(q46 > 1, "mar_y", "mar_n")) %>%
   count(evermar) %>%
-  spread(evermar, n) %>%
+  spread(evermar, n) %>% # Cam: Also, great work omn our use of pread!
   summarise(evermar_perc = 100*(sum(mar_y)/nrow(yrbs))) %>%
   ungroup() %>% 
       left_join(., laws, by = "sitecode") %>% 
@@ -148,16 +148,16 @@ mar_pol
 # Plot 3.
 ```{r viz 3}
 mar_pol %>% 
-  filter(Law == "recreational" | Law == "medical") %>%
-  ggplot() +
+  filter(Law == "recreational" | Law == "medical") %>% # Cam: Good work on incorporating the or statement. 
+  ggplot() + # Cam: Nice work passing the filtered data straight to ggplot. 
     geom_line(aes(year, Marijuana, col = Law)) +
   facet_wrap(~sitecode) +
-  scale_y_continuous("Percentage", labels = scales::percent) +
+  scale_y_continuous("Percentage", labels = scales::percent) + # Cam: If you round the proportions before you plot them, it should remove the .0 after the percentage, which seems unneeded to me. 
   scale_x_continuous("Year") +
   labs(title = "Adolescent Marijuana Use Where Marijuana Use is Legal",
        caption = "Data from the CDC's Youth Risk Behavior Survey") +
   theme(panel.spacing = unit(10, "lines")) +
-  theme_minimal(12)
+  theme_minimal(12) # Cam: Adjusting base_size would have saved me a lot of time in my own plots; now I know!
 ```
 
 
