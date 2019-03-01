@@ -90,9 +90,9 @@ ggplot(law_full, aes(year, drug_prop, color = drug)) +
 
 ```{r data prep 2, include = F}
 # Pulling it all together
-law_full2 <- left_join(l1, l2, by='key') %>%
-                left_join(., l3, by='key') %>%
-                left_join(., laws, by = "sitecode") %>% 
+law_full2 <- left_join(l1, l2, by = 'key') %>%
+                left_join(., l3, by = 'key') %>%
+                left_join(., laws, by = "sitecode") %>% # Cam: again, nice work on the left joins! Although I believe the . might be uneeded, it certainly makes it more redeable!
   group_by(Law, year, sitecode) %>% 
   summarise(alc_prop = mean(everalc_perc),
             cig_prop = mean(evercig_perc),
@@ -116,14 +116,16 @@ law_full2
 ggplot(law_full2, aes(year, drug_prop, col = drug)) +
     geom_smooth(aes(fill = drug), alpha = 0.3) +
     scale_fill_OkabeIto(name = "Substance",
-                       labels = c("Alcohol", "Marijuana", "Cigarettes")) +
+                       labels = c("Alcohol", "Marijuana", "Cigarettes")) + # Cam: Great use of the labels argument to provide the fill legend. 
   scale_y_continuous("Percentage", labels = scales::percent) +
   scale_x_continuous("Year") +
-  facet_grid(.~Law) +
+  facet_grid(.~Law) + # Cam: Nice facetting!
   labs(title = "Underage Substance Use By State Marijuana Policy",
        caption = "Data from the CDC's Youth Risk Behavior Survey") +
-  theme(panel.spacing = unit(10, "lines")) +
+  theme(panel.spacing = unit(10, "lines")) + # Cam: I don't think I've ever used panel.spacing; nice addition!
   theme_minimal(12)
+
+# Cam: I think this one might benefit from having it be wider. You can set these manually be including fig.height and fig.width in your block headers. 
 
 ```
 
