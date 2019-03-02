@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-require(tidyverse)
+library(tidyverse) # Cam: My understanding is that `require` should be used inside functions. Since you want a missing package to throw an error instead of just a warning, I think library makes sense here. 
 library(data.table)
 library(colorblindr)
 library(gghighlight)
@@ -16,11 +16,11 @@ library(forcats)
 
 
 ```{r data import, include = F}
-yrbs1 <-fread("SADCQ_a-m.csv")
-yrbs2 <-fread("SADCQ_n-z.csv")
+yrbs1 <- fread("SADCQ_a-m.csv") # Cam: it looks like the data might be missing from the repo.
+yrbs2 <- fread("SADCQ_n-z.csv")
 
 yrbs <- bind_rows(yrbs1, yrbs2)
-laws <- rio::import("marijuana policy dates.xlsx")
+laws <- rio::import("marijuana policy dates.xlsx") # Cam: Nice work on the namespacing! Since you are only using import once, it seems more than appropriate.
 ```
 
 ```{r data prep, include = F}
@@ -39,7 +39,7 @@ l1 <- yrbs %>%
 # Alcohol
 l2 <- yrbs %>% 
   group_by(key) %>% 
-  mutate(everalc = ifelse(q40 > 1, "alc_y", "alc_n")) %>%
+  mutate(everalc = ifelse(q40 > 1, "alc_y", "alc_n")) %>% # Cam: Probably not the biggest deal, but I've read that using dplyr's `if_else` is actually faster and safer than base's `ifelse`. Nevertheless, it looks like it did exactly what you wanted it to do!
   count(everalc) %>%
   spread(everalc, n) %>%
   summarise(everalc_perc = 100*(sum(alc_y)/nrow(yrbs))) %>%
@@ -56,7 +56,7 @@ l1
 # Pulling it all together
 law_full <- left_join(l1, l2, by = "key") %>%
                 left_join(., l3, by = "key") %>%
-                left_join(., laws, by = "sitecode") %>% 
+                left_join(., laws, by = "sitecode") %>%  # Cam: Great work using the left joins to combine your data!
   group_by(Law, year) %>% 
   summarise(alc_prop = mean(everalc_perc),
             cig_prop = mean(evercig_perc),
@@ -66,7 +66,7 @@ law_full <- left_join(l1, l2, by = "key") %>%
                 mar_sd = sd(evermar_perc)) %>%
   ungroup() %>% 
       rename(Alcohol = alc_prop) %>%
-      rename(Cigarettes = cig_prop) %>%
+      rename(Cigarettes = cig_prop) %>% # Cam: Very cool use of rename to rename the factor levels before you gathered them. 
       rename(Marijuana = mar_prop) %>% 
   gather(drug, drug_prop, Alcohol:Marijuana) %>% 
   gather(drug_, drug_sd, alc_sd:mar_sd) %>% 
@@ -77,22 +77,22 @@ law_full
 # Plot 1.
 ```{r viz 1}
 ggplot(law_full, aes(year, drug_prop, color = drug)) +
-  geom_smooth(aes(fill = drug), alpha = 0.3) +
-    scale_fill_OkabeIto(name = "Substance",
+  geom_smooth(alpha = 0.3) + # Cam: Although colouring the SEs is nice for distinguishing them, I'm not sure it adds much to this plot. That being said, I think the alpha 0.3 works very well for this plot!
+    scale_color_OkabeIto(name = "Substance",
                        labels = c("Alcohol", "Marijuana", "Cigarettes")) +
-  scale_y_continuous("Percentage", labels = scales::percent) +
-  scale_x_continuous("Year", limits = c(1995, 2015)) +
+  scale_y_continuous("Percentage", labels = scales::percent) + # Cam: I like the percentage on the y-axis - good work!
+  scale_x_continuous("Year", limits = c(1995, 2015)) + # Cam: I didn't know you could title axes directly in scale_*_continuous. That's really cool!
   labs(title = "Prevalence of Underage Substance Use Over 20 Years",
-       caption = "Data from the CDC's Youth Risk Behavior Survey") +
+       caption = "Data from the CDC's Youth Risk Behavior Survey") + # Cam: I like that you provided a source for your data!
   theme_minimal()
 ```
 
 
 ```{r data prep 2, include = F}
 # Pulling it all together
-law_full2 <- left_join(l1, l2, by='key') %>%
-                left_join(., l3, by='key') %>%
-                left_join(., laws, by = "sitecode") %>% 
+law_full2 <- left_join(l1, l2, by = 'key') %>%
+                left_join(., l3, by = 'key') %>%
+                left_join(., laws, by = "sitecode") %>% # Cam: again, nice work on the left joins! Although I believe the . might be uneeded, it certainly makes it more redeable!
   group_by(Law, year, sitecode) %>% 
   summarise(alc_prop = mean(everalc_perc),
             cig_prop = mean(evercig_perc),
@@ -116,23 +116,25 @@ law_full2
 ggplot(law_full2, aes(year, drug_prop, col = drug)) +
     geom_smooth(aes(fill = drug), alpha = 0.3) +
     scale_fill_OkabeIto(name = "Substance",
-                       labels = c("Alcohol", "Marijuana", "Cigarettes")) +
+                       labels = c("Alcohol", "Marijuana", "Cigarettes")) + # Cam: Great use of the labels argument to provide the fill legend. 
   scale_y_continuous("Percentage", labels = scales::percent) +
   scale_x_continuous("Year") +
-  facet_grid(.~Law) +
+  facet_grid(.~Law) + # Cam: Nice facetting!
   labs(title = "Underage Substance Use By State Marijuana Policy",
        caption = "Data from the CDC's Youth Risk Behavior Survey") +
-  theme(panel.spacing = unit(10, "lines")) +
+  theme(panel.spacing = unit(10, "lines")) + # Cam: I don't think I've ever used panel.spacing; nice addition!
   theme_minimal(12)
+
+# Cam: I think this one might benefit from having it be wider. You can set these manually be including fig.height and fig.width in your block headers. 
 
 ```
 
 ```{r data prep 3, include = F}
 mar_pol <- yrbs %>% 
-  group_by(key, year, sitecode) %>% 
+  group_by(key, year, sitecode) %>% # Cam: Good work on the multi-variable grouping!
   mutate(evermar = ifelse(q46 > 1, "mar_y", "mar_n")) %>%
   count(evermar) %>%
-  spread(evermar, n) %>%
+  spread(evermar, n) %>% # Cam: Also, great work on your use of spread!
   summarise(evermar_perc = 100*(sum(mar_y)/nrow(yrbs))) %>%
   ungroup() %>% 
       left_join(., laws, by = "sitecode") %>% 
@@ -146,16 +148,16 @@ mar_pol
 # Plot 3.
 ```{r viz 3}
 mar_pol %>% 
-  filter(Law == "recreational" | Law == "medical") %>%
-  ggplot() +
+  filter(Law == "recreational" | Law == "medical") %>% # Cam: I like the use of the or symbol in this filter.
+  ggplot() + # Cam: I also like, since the data prep was so short in this section, that you passed the data straight through to ggplot. 
     geom_line(aes(year, Marijuana, col = Law)) +
   facet_wrap(~sitecode) +
-  scale_y_continuous("Percentage", labels = scales::percent) +
+  scale_y_continuous("Percentage", labels = scales::percent) + # Cam: If you round the proportions before you plot them, it should remove the .0 after the percentage, which seems unneeded to me. 
   scale_x_continuous("Year") +
   labs(title = "Adolescent Marijuana Use Where Marijuana Use is Legal",
        caption = "Data from the CDC's Youth Risk Behavior Survey") +
   theme(panel.spacing = unit(10, "lines")) +
-  theme_minimal(12)
+  theme_minimal(12) # Cam: Adjusting base_size would have saved me a lot of time in my own plots; now I know!
 ```
 
 
