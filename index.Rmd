@@ -1,0 +1,281 @@
+---
+title: "EDLD 610: Final Project Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    storyboard: true
+    theme: readable
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(colorblindr)
+library(gghighlight)
+library(lubridate)
+```
+
+```{r data import, include = F}
+yrbs <-rio::import("yrbs.xlsx") %>%
+  unite(key, year, sitecode, remove = F)
+head(yrbs)
+laws <- rio::import("marijuana policy dates.xlsx")
+
+# Marijuana
+l1 <- yrbs %>% 
+  group_by(key, year, sitecode) %>% 
+  mutate(evermar = ifelse(q46 > 1, "mar_y", "mar_n")) %>%
+  count(evermar) %>%
+  spread(evermar, n) %>%
+  summarise(evermar_perc = 100*(sum(mar_y)/nrow(yrbs))) %>%
+  ungroup()
+# Alcohol
+l2 <- yrbs %>% 
+  group_by(key) %>% 
+  mutate(everalc = ifelse(q40 > 1, "alc_y", "alc_n")) %>%
+  count(everalc) %>%
+  spread(everalc, n) %>%
+  summarise(everalc_perc = 100*(sum(alc_y)/nrow(yrbs))) %>%
+  ungroup()
+# Cigarettes
+l3 <- yrbs %>% 
+  group_by(key) %>% 
+  mutate(evercig = ifelse(q32 > 1, "cig_y", "cig_n")) %>%
+  count(evercig) %>%
+  spread(evercig, n) %>%
+  summarise(evercig_perc = 100*(sum(cig_y)/nrow(yrbs))) %>%
+  ungroup()
+# Pulling it all together
+law_full <- left_join(l1, l2, by = "key") %>%
+                left_join(., l3, by = "key") %>%
+                left_join(., laws, by = "sitecode") %>% 
+  group_by(Law, year) %>% 
+  summarise(alc_prop = mean(everalc_perc),
+            cig_prop = mean(evercig_perc),
+            mar_prop = mean(evermar_perc),
+                alc_sd = sd(everalc_perc),
+                cig_sd = sd(evercig_perc),
+                mar_sd = sd(evermar_perc)) %>%
+  ungroup() %>% 
+      rename(alcohol = alc_prop) %>%
+      rename(cigarettes = cig_prop) %>%
+      rename(marijuana = mar_prop) %>% 
+  gather(drug, drug_prop, alcohol:marijuana) %>% 
+  gather(drug_, drug_sd, alc_sd:mar_sd) %>% 
+  select(Law, year, drug, drug_prop, drug_sd)
+
+# Pulling it all together for Plot 2
+law_full2 <- left_join(l1, l2, by='key') %>%
+                left_join(., l3, by='key') %>%
+                left_join(., laws, by = "sitecode") %>% 
+  group_by(Law, year, sitecode) %>% 
+  summarise(alc_prop = mean(everalc_perc),
+            cig_prop = mean(evercig_perc),
+            mar_prop = mean(evermar_perc),
+                alc_sd = sd(everalc_perc),
+                cig_sd = sd(evercig_perc),
+                mar_sd = sd(evermar_perc)) %>%
+  ungroup() %>% 
+      rename(alcohol = alc_prop) %>%
+      rename(cigarettes = cig_prop) %>%
+      rename(marijuana = mar_prop) %>% 
+  gather(drug, drug_prop, alcohol:marijuana) %>% 
+  gather(drug_, drug_sd, alc_sd:mar_sd) %>% 
+  select(Law, year, sitecode, drug, drug_prop, drug_sd) %>% 
+  mutate(law = factor(Law)) %>% 
+  mutate(law = fct_recode(law, "Decriminalized" = "decriminalized", "Medical" = "medical", 
+                           "Recreational" = "recreational")) %>% 
+  mutate(law = fct_explicit_na(law, na_level="No Policy"))
+```
+
+# Final Plots
+
+Column {.tabset}
+-------------------------------------
+
+### Plot1: Underage Substance Use in the U.S. 1990-2017
+```{r, fig.height = 10, fig.width = 15}
+plot1final <- ggplot(law_full) +
+    geom_smooth(aes(year, drug_prop, fill = drug, col = drug), alpha = 0.3) +
+    scale_color_OkabeIto(name = "Substance",
+                         breaks = c("alcohol", "marijuana", "cigarettes"),
+                       labels = c("Alcohol", "Marijuana", "Cigarettes")) +
+    scale_fill_OkabeIto(name = "Substance",
+                        breaks = c("alcohol", "marijuana", "cigarettes"),
+                       labels = c("Alcohol", "Marijuana", "Cigarettes")) +
+    scale_y_continuous("Percentage", labels = scales::percent) +
+    scale_x_continuous("Year", limits = c(1995, 2015)) +
+    labs(title = "Prevalence of Underage Substance Use Over 20 Years",
+         caption = "Data from the CDC's Youth Risk Behavior Survey") +
+  theme_minimal(14)
+plot1final
+```
+
+### Plot2: Underage Substance Use in the U.S. 1990-2017
+```{r, fig.height = 10, fig.width = 15}
+plot2final <- law_full2 %>%
+  ggplot(aes(year, drug_prop, col = drug)) +
+    geom_smooth(aes(fill = drug), alpha = 0.3) +
+        scale_color_OkabeIto(name = "Substance",
+                         breaks = c("alcohol", "marijuana", "cigarettes"),
+                       labels = c("Alcohol", "Marijuana", "Cigarettes")) +
+        scale_fill_OkabeIto(name = "Substance",
+                            breaks = c("alcohol", "marijuana", "cigarettes"),
+                           labels = c("Alcohol", "Marijuana", "Cigarettes")) +
+        scale_y_continuous("Percentage", labels = scales::percent) +
+        scale_x_continuous("Year") +
+  facet_wrap(~ law) +
+  labs(title = "Underage Substance Use By State Marijuana Policy",
+       caption = "Data from the CDC's Youth Risk Behavior Survey") +
+  theme(panel.spacing = unit(10, "lines")) +
+  theme_minimal(14)
+plot2final
+```
+
+### Plot3: Underage Substance Use in the U.S. 1990-2017
+```{r, fig.width = 10}
+
+```
+
+# Plot 1 : Drafts
+
+Row {data-height=350}
+-------------------------------------
+
+### Version 2
+
+```{r}
+plot1final 
+```
+
+Row {data-height=350}
+-------------------------------------
+
+### Version 1
+
+```{r viz 1.0}
+ggplot(law_full, aes(year, drug_prop, color = drug)) +
+  geom_smooth(aes(fill = drug), alpha = 0.3) +
+      scale_fill_OkabeIto(name = "Substance",
+                       labels = c("Alcohol", "Marijuana", "Cigarettes")) +
+      scale_y_continuous("Percentage", labels = scales::percent) +
+      scale_x_continuous("Year", limits = c(1995, 2015)) +
+  labs(title = "Prevalence of Underage Substance Use Over 20 Years",
+       caption = "Data from the CDC's Youth Risk Behavior Survey") +
+  theme_minimal()
+```
+
+
+# Plot 2: Drafts
+
+Row {data-height=350}
+-------------------------------------
+
+### Version 2.1
+
+```{r}
+plot2final 
+```
+
+Row {data-height=350}
+-------------------------------------
+
+### Version 2.0
+
+```{r, fig.width = 15}
+ggplot(law_full2, aes(year, drug_prop, col = drug)) +
+    geom_smooth(aes(fill = drug), alpha = 0.3) +
+    scale_fill_OkabeIto(name = "Substance",
+                       labels = c("Alcohol", "Marijuana", "Cigarettes")) +
+          scale_y_continuous("Percentage", labels = scales::percent) +
+          scale_x_continuous("Year") +
+  facet_grid(Law ~.) +
+  labs(title = "Underage Substance Use By State Marijuana Policy",
+       caption = "Data from the CDC's Youth Risk Behavior Survey") +
+  theme(panel.spacing = unit(10, "lines")) +
+  theme_minimal(14)
+```
+
+```{r data prep 3, include = F}
+mar_pol <- yrbs %>% 
+  group_by(key, year, sitecode) %>% 
+    mutate(evermar = ifelse(q46 > 1, "mar_y", "mar_n")) %>%
+    count(evermar) %>%
+    spread(evermar, n) %>%
+    summarise(evermar_perc = 100*(sum(mar_y)/nrow(yrbs))) %>%
+  ungroup() %>% 
+      left_join(., laws, by = "sitecode") %>% 
+  group_by(Law, year, sitecode) %>% 
+  summarise(mar_prop = mean(evermar_perc)) %>%
+  ungroup() %>% 
+      rename(Marijuana = mar_prop) %>% 
+  mutate(law = factor(Law)) %>% 
+  mutate(law = fct_recode(law, "Decriminalized" = "decriminalized", "Medical" = "medical", 
+                           "Recreational" = "recreational")) %>% 
+  mutate(law = fct_explicit_na(law, na_level="No Policy"))
+```
+
+# Plot 3: Drafts
+
+Column {.tabset}
+-------------------------------------
+
+### Chart A
+
+```{r, fig.height = 10, fig.width = 12}
+mar_pol %>% 
+    filter(Law == "recreational" | Law == "medical") %>%
+    filter(year >= 1995 & Marijuana >= 0.00) %>%
+    group_by(Law, sitecode) %>% 
+  ggplot() +
+    geom_line(aes(year, Marijuana, col = Law)) +
+        scale_color_OkabeIto(name = "Policy",
+                          breaks = c("medical", "recreational"),
+                          labels = c("Medical", "Recreational")) +
+    facet_wrap(~sitecode) +
+        scale_y_continuous("Percentage", labels = scales::percent) +
+        scale_x_continuous("Year") +
+    labs(title = "Adolescent Marijuana Use Where Marijuana Use is Legal",
+        caption = "Data from the CDC's Youth Risk Behavior Survey") +
+  theme(panel.spacing = unit(10, "lines")) +
+  theme_minimal(12)
+```
+
+### Chart B
+
+```{r, fig.height = 10, fig.width = 12}
+mar_pol %>% 
+  filter(law == "No Policy") %>%
+  filter(year >= 1995) %>%
+  group_by(Law, sitecode) %>% 
+  ggplot() +
+    geom_line(aes(year, Marijuana, col = law)) +
+        scale_color_OkabeIto(name = "Policy",
+                              breaks = c("medical", "recreational"),
+                              labels = c("Medical", "Recreational")) +
+  facet_wrap(~sitecode) +
+        scale_y_continuous("Percentage", labels = scales::percent) +
+        scale_x_continuous("Year") +
+  labs(title = "Adolescent Marijuana Use Where Marijuana Use is Illegal",
+       caption = "Data from the CDC's Youth Risk Behavior Survey") +
+  theme(panel.spacing = unit(10, "lines")) +
+  theme_minimal(12)
+```
+
+### Chart C
+
+```{r, fig.width = 10}
+mar_pol %>% 
+  filter(law == "Recreational" | Law == "Medical") %>%
+  filter(year >= 1995 & Marijuana >= 0.00) %>% 
+  ggplot() +
+    geom_line(aes(year, Marijuana, col = Law)) +
+  facet_wrap(~sitecode) +
+  scale_y_continuous("Percentage", labels = scales::percent) +
+  scale_x_continuous("Year") +
+  labs(title = "Adolescent Marijuana Use Where Marijuana Use is Legal",
+       caption = "Data from the CDC's Youth Risk Behavior Survey") +
+  theme(panel.spacing = unit(10, "lines")) +
+  theme_minimal(12)
+```
