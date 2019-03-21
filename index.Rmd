@@ -111,7 +111,7 @@ Inputs {.sidebar}
 -------------------------------------
 **Narrative**  
     Marijuana is one of the trifecta of substance use outcomes that adolescent researchers examine. In light of recent concern that increased promotion of marijuana in Oregon might lead to increased marijuana use among adolescents, I decided to take a macro perspective on trends of adolescent marijuana use over time. Using data from the CDC, I derived a series of figures to evaluated variance in marijuana use over time and between state-level policies.  
-    Plot1 displays the patterns marijuana use over the last 20 years compared to alcohol and tobacco, the other most common substances used among minors. Plot2 takes a step further to see how marijuana use differs between state-level policies; initially compared to trends of alcohol and tobacco, then focused on marijuana, alone. Plot3 aims to show the variation of marijuana use among states wherein Marijuana is illegal (and at least ten years of data are available).
+    *Plot1* displays the patterns marijuana use over the last 20 years compared to alcohol and tobacco, the other most common substances used among minors. *Plot2* takes a step further to see how marijuana use differs between state-level policies; initially compared to trends of alcohol and tobacco, then focused on marijuana, alone. *Plot3* aims to show the variation of marijuana use among states wherein Marijuana is illegal (and at least ten years of data are available).
 
 Column {.tabset}
 -------------------------------------
@@ -196,7 +196,7 @@ mar_pol %>%
 Inputs {.sidebar}
 -------------------------------------
 
-iterations of the data displayes
+Iterations of the data displays
 
 ### Version 2
 
@@ -224,7 +224,8 @@ ggplot(law_full, aes(year, drug_prop, color = drug)) +
 Inputs {.sidebar}
 -------------------------------------
 
-iterations of the data displayes
+Iterations of the data displays
+
 ### Version 2.1
 
 ```{r}
@@ -267,7 +268,7 @@ ggplot(law_full2, aes(year, drug_prop, col = drug)) +
 Inputs {.sidebar}
 -------------------------------------
 
-iterations of the data displayes
+Iterations of the data displays
 
 ### Chart A
 
@@ -289,9 +290,6 @@ mar_pol %>%
   theme(panel.spacing = unit(10, "lines")) +
   theme_minimal(12)
 ```
-*** 
-
-Some commentary about Frame 2.
 
 ### Chart B
 
@@ -313,9 +311,6 @@ mar_pol %>%
   theme(panel.spacing = unit(10, "lines")) +
   theme_minimal(12)
 ```
-*** 
-
-Some commentary about Frame 2.
 
 ### Chart C
 
