@@ -25,9 +25,7 @@ library(plotly)
 ```{r data import, include = F}
 yrbs <- import(here("data", "yrbs.xlsx")) %>%
   unite(key, year, sitecode, remove = F)
-
 laws <- import(here("data", "marijuana policy dates.xlsx"))
-
 # Marijuana
 l1 <- yrbs %>% 
   group_by(key, year, sitecode) %>% 
@@ -66,7 +64,6 @@ law_full <- left_join(l1, l2, by = "key") %>%
       rename(marijuana = mar_prop) %>% 
   gather(drug, drug_prop, alcohol:marijuana) %>% 
   select(Law, year, drug, drug_prop)
-
 # Pulling it all together for Plot 2
 law_full2 <- left_join(l1, l2, by='key') %>%
                 left_join(., l3, by='key') %>%
@@ -85,7 +82,6 @@ law_full2 <- left_join(l1, l2, by='key') %>%
           mutate(law = fct_recode(law, "Decriminalized" = "decriminalized", "Medical" = "medical", 
                                    "Recreational" = "recreational")) %>% 
           mutate(law = fct_explicit_na(law, na_level="No Policy"))
-
 ### For plot 3
 mar_pol <- yrbs %>% 
   group_by(key, year, sitecode) %>% 
@@ -130,7 +126,6 @@ plot1final <- ggplot(law_full) +
     scale_x_continuous("Year", limits = c(1995, 2015)) +
     labs(title = "Prevalence of Underage Substance Use Over 20 Years",
          caption = "Data from the CDC's Youth Risk Behavior Survey") 
-
 plot1final +
   theme_minimal(24)
 ```
@@ -152,7 +147,6 @@ plot21final <- law_full2 %>%
   labs(title = "A. Underage Substance Use By State Policy",
        caption = "Data from the CDC's Youth Risk Behavior Survey") +
     theme_minimal(20)
-
 plot22final <- law_full2 %>%
   filter(drug == "marijuana") %>% 
   ggplot() +
@@ -166,7 +160,6 @@ plot22final <- law_full2 %>%
         labs(title = "B. Marijuana Use By State Policy",
               caption = "Data from the CDC's Youth Risk Behavior Survey") +
   theme_minimal(20)
-
 ggarrange(plot21final, plot22final, nrow = 2)
 ```
 
@@ -198,13 +191,13 @@ Inputs {.sidebar}
 
 Iterations of the data displays
 
-### Version 2
+### Version 1
 
 ```{r}
 plot1final + theme_minimal()
 ```
 
-### Version 1
+### Version 2
 
 ```{r viz 1.0}
 ggplot(law_full, aes(year, drug_prop, color = drug)) +
@@ -226,7 +219,7 @@ Inputs {.sidebar}
 
 Iterations of the data displays
 
-### Version 2.1
+### Version 1
 
 ```{r}
 law_full2 %>%
@@ -246,7 +239,7 @@ law_full2 %>%
   theme_minimal()
 ```
 
-### Version 2.0
+### Version 2
 
 ```{r, fig.width = 15}
 ggplot(law_full2, aes(year, drug_prop, col = drug)) +
@@ -270,7 +263,7 @@ Inputs {.sidebar}
 
 Iterations of the data displays
 
-### Chart A
+### Draft A
 
 ```{r, fig.height = 10, fig.width = 12}
 mar_pol %>% 
@@ -291,7 +284,7 @@ mar_pol %>%
   theme_minimal(12)
 ```
 
-### Chart B
+### Draft B
 
 ```{r, fig.height = 10, fig.width = 12}
 mar_pol %>% 
@@ -312,7 +305,7 @@ mar_pol %>%
   theme_minimal(12)
 ```
 
-### Chart C
+### Draft C
 
 ```{r, fig.width = 10}
 mar_pol %>% 
@@ -329,7 +322,7 @@ mar_pol %>%
   theme_minimal(12)
 ```
 
-### Chart D
+### Draft D
 ```{r}
 mar_nope <- mar_pol %>% 
   filter(law == "No Policy", !is.na(Marijuana)) %>% 
@@ -341,8 +334,5 @@ mar_nope <- mar_pol %>%
   labs(title = "Adolescent Marijuana Use Where Marijuana Use is Illegal",
        caption = "Data from the CDC's Youth Risk Behavior Survey") +
   theme_minimal() 
-
 ggplotly(mar_nope)
 ```
-
-
