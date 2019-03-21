@@ -81,7 +81,7 @@ law_full2 <- left_join(l1, l2, by='key') %>%
           mutate(law = factor(Law)) %>% 
           mutate(law = fct_recode(law, "Decriminalized" = "decriminalized", "Medical" = "medical", 
                                    "Recreational" = "recreational")) %>% 
-          mutate(law = fct_explicit_na(law, na_level="No Policy"))
+          mutate(law = fct_explicit_na(law, na_level="Illegal"))
 ### For plot 3
 mar_pol <- yrbs %>% 
   group_by(key, year, sitecode) %>% 
@@ -98,7 +98,7 @@ mar_pol <- yrbs %>%
             mutate(law = factor(Law)) %>% 
             mutate(law = fct_recode(law, "Decriminalized" = "decriminalized", "Medical" = "medical", 
                                      "Recreational" = "recreational")) %>% 
-            mutate(law = fct_explicit_na(law, na_level="No Policy"))
+            mutate(law = fct_explicit_na(law, na_level="Illegal"))
 ```
 
 # Final Plots
@@ -106,7 +106,7 @@ mar_pol <- yrbs %>%
 Inputs {.sidebar}
 -------------------------------------
 **Narrative**  
-    Marijuana is one of the trifecta of substance use outcomes that adolescent researchers examine. In light of recent concern that increased promotion of marijuana in Oregon might lead to increased marijuana use among adolescents, I decided to take a macro perspective on trends of adolescent marijuana use over time. Using data from the CDC, I derived a series of figures to evaluated variance in marijuana use over time and between state-level policies.  
+    Marijuana is part of the substance use triad that researchers focus on studying among adolescents, along with alcohol and tobacco. In light of recent concern that unchecked promotion of marijuana in Oregon might lead to increased marijuana use among teens, I decided to take a macro perspective on trends of adolescent marijuana use in the US. Using data from the CDC, I derived a series of figures to evaluated variance in marijuana use over time and between state-level policies.  
     *Plot1* displays the patterns marijuana use over the last 20 years compared to alcohol and tobacco, the other most common substances used among minors. *Plot2* takes a step further to see how marijuana use differs between state-level policies; initially compared to trends of alcohol and tobacco, then focused on marijuana, alone. *Plot3* aims to show the variation of marijuana use among states wherein Marijuana is illegal (and at least ten years of data are available).
 
 Column {.tabset}
@@ -146,7 +146,7 @@ plot21final <- law_full2 %>%
   facet_grid(. ~ law) +
   labs(title = "A. Underage Substance Use By State Policy",
        caption = "Data from the CDC's Youth Risk Behavior Survey") +
-    theme_minimal(20)
+    theme_minimal(24)
 plot22final <- law_full2 %>%
   filter(drug == "marijuana") %>% 
   ggplot() +
@@ -159,7 +159,7 @@ plot22final <- law_full2 %>%
   facet_grid(. ~ law) +
         labs(title = "B. Marijuana Use By State Policy",
               caption = "Data from the CDC's Youth Risk Behavior Survey") +
-  theme_minimal(20)
+  theme_minimal(24)
 ggarrange(plot21final, plot22final, nrow = 2)
 ```
 
@@ -169,7 +169,6 @@ ggarrange(plot21final, plot22final, nrow = 2)
 mar_pol %>% 
   filter(law == "No Policy") %>%
   filter(sitecode != "KS" & sitecode != "VA" & sitecode != "ND") %>% 
-  group_by(Law, sitecode) %>% 
   ggplot() +
     geom_line(aes(year, Marijuana, col = law)) +
         scale_color_OkabeIto(name = "Policy",
